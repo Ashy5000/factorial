@@ -2,28 +2,28 @@
 // Created by ashy5000 on 6/29/25.
 //
 
-#ifndef ERATOSTHENES_CUH
-#define ERATOSTHENES_CUH
+#ifndef ERATOSTHENES_HPP
+#define ERATOSTHENES_HPP
 #include <vector>
 
-inline std::vector<uint> sieve(uint n) {
+inline std::vector<unsigned int> sieve(unsigned int n) {
   std::vector<bool> ints;
   ints.reserve(n - 2);
-  for (int i = 2; i < n; i++) {
+  for (unsigned int i = 2; i < n; i++) {
     ints.push_back(true);
   }
-  uint res_len = n - 2;
-  for (int p = 2; p * p <= n; p++) {
+  unsigned int res_len = n - 2;
+  for (unsigned int p = 2; p * p <= n; p++) {
     if (ints[p - 2]) {
-      for (int i = p * p; i <= n; i += p) {
+      for (unsigned int i = p * p; i <= n; i += p) {
         ints[i - 2] = false;
         res_len--;
       }
     }
   }
-  std::vector<uint> res;
+  std::vector<unsigned int> res;
   res.reserve(res_len);
-  for (uint i = 0; i < ints.size(); i++) {
+  for (unsigned int i = 0; i < ints.size(); i++) {
     if (ints[i]) {
       res.push_back(i + 2);
     }
@@ -31,4 +31,4 @@ inline std::vector<uint> sieve(uint n) {
   return res;
 }
 
-#endif //ERATOSTHENES_CUH
+#endif //ERATOSTHENES_HPP
