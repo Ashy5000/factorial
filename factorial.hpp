@@ -10,6 +10,8 @@
 #include "eratosthenes.hpp"
 #include "math.hpp"
 
+const unsigned int MIN_THREADS = 4;
+
 inline std::vector<unsigned int> power_from_prime(const unsigned int n, const unsigned int p) {
   unsigned int exp = 0;
   unsigned int power = p;
@@ -39,8 +41,8 @@ inline std::vector<std::vector<unsigned int>> combine_intermediates_multithreade
     return intermediates;
   }
   // int num_threads = omp_get_max_threads();
-  unsigned int num_threads = omp_get_max_threads();
-  if (intermediates.size() < num_threads) {
+  unsigned int num_threads = std::min(omp_get_max_threads(), static_cast<int>(intermediates.size()) / 2);
+  if (num_threads < MIN_THREADS) {
     combine_intermediates(intermediates);
     return intermediates;
   }
@@ -57,7 +59,7 @@ inline std::vector<std::vector<unsigned int>> combine_intermediates_multithreade
     intermediates[n] = subsection[0];
   }
   intermediates.resize(num_threads);
-  combine_intermediates(intermediates);
+  combine_intermediates_multithreaded(intermediates);
   return intermediates;
 }
 
