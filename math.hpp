@@ -7,6 +7,8 @@
 #include <algorithm>
 #include <vector>
 
+const unsigned int THRESHOLD = 10;
+
 inline std::vector<unsigned int> add(const size_t a_size, const std::vector<unsigned int>::const_iterator a, const size_t b_size, const std::vector<unsigned int>::const_iterator b) {
   const unsigned int min_size = std::min(a_size, b_size);
   const unsigned int max_size = std::max(a_size, b_size);
@@ -104,7 +106,7 @@ inline std::vector<unsigned int> grade_school_mul(const size_t a_size, const std
 }
 
 inline std::vector<unsigned int> karatsuba(const size_t a_size, const std::vector<unsigned int>::const_iterator a, const size_t b_size, const std::vector<unsigned int>::const_iterator b) {
-  if (a_size == 1 || b_size == 1) {
+  if (a_size < THRESHOLD || b_size < THRESHOLD) {
     return grade_school_mul(a_size, a, b_size, b);
   }
   const size_t max_size = std::max(a_size, b_size);
@@ -151,7 +153,7 @@ inline std::vector<unsigned int> karatsuba(const size_t a_size, const std::vecto
 }
 
 inline std::vector<unsigned int> multiply(std::vector<unsigned int> &a, std::vector<unsigned int> &b) {
-  if (a.size() < 5 || b.size() < 5) {
+  if (a.size() < THRESHOLD || b.size() < THRESHOLD) {
     return grade_school_mul(a.size(), a.begin(), b.size(), b.begin());
   }
   return karatsuba(a.size(), a.begin(), b.size(), b.begin());

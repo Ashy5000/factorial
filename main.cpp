@@ -7,5 +7,5 @@
 #include "perf.hpp"
 
 int main() {
-    std::cout << factorial_perf(30000) << std::endl;
+    std::cout << factorial_perf(40000) << std::endl;
 }
