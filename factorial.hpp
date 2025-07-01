@@ -10,7 +10,7 @@
 #include "eratosthenes.hpp"
 #include "math.hpp"
 
-const unsigned int MIN_THREADS = 4;
+const unsigned int MIN_THREADS = 2;
 
 inline std::vector<unsigned int> power_from_prime(const unsigned int n, const unsigned int p) {
   unsigned int exp = 0;
