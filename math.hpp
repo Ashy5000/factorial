@@ -52,7 +52,7 @@ inline std::vector<uint> compliment(const uint x_size, const std::vector<uint>::
   std::vector<uint> res = {};
   res.reserve(x_size);
   for (int i = 0; i < x_size; i++) {
-    res.push_back(std::numeric_limits<uint>::max() - *(x + i));
+    res.push_back(0 - 1 - *(x + i));
   }
   return res;
 }

@@ -24,6 +24,9 @@ inline std::vector<uint> power_from_prime(const uint n, const uint p) {
 
 inline void combine_intermediates(std::vector<std::vector<uint>> &intermediates) {
   while (intermediates.size() > 1) {
+    if(intermediates.size() % 2 != 0) {
+      intermediates.push_back({1});
+    }
     for (uint i = 0; i < intermediates.size(); i++) {
       intermediates.insert(intermediates.begin() + i, multiply(intermediates[i], intermediates[i + 1]));
       intermediates.erase(intermediates.begin() + i + 1, intermediates.begin() + i + 3);
@@ -35,6 +38,7 @@ inline std::vector<std::vector<uint>> combine_intermediates_multithreaded(std::v
   if (intermediates.size() == 1) {
     return intermediates;
   }
+  // int num_threads = omp_get_max_threads();
   int num_threads = omp_get_max_threads();
   if (intermediates.size() < num_threads) {
     combine_intermediates(intermediates);
