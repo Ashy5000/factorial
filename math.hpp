@@ -11,49 +11,49 @@
 #include <cstring>
 #include <iostream>
 
-typedef unsigned long long int uint64;
+typedef unsigned long long int seg;
+typedef __uint128_t double_seg;
+#define SEG_BITS 64
 
 class BigInt {
 public:
-  static const unsigned int THRESHOLD = 2;
-  uint64 *data = nullptr;
+  static const unsigned int THRESHOLD = 8;
+  seg *data = nullptr;
   size_t current_capacity = 0;
   size_t max_capacity = 0;
 
     void reserve(size_t size_p) {
-      size_t size = size_p * sizeof(uint64);
+      size_t size = size_p * sizeof(seg);
       if (size <= max_capacity || size == 0) {
         return;
       }
-      uint64* new_ptr;
+      seg* new_ptr;
       if (data) {
-        new_ptr = (uint64*)(std::realloc(data, size));
+        new_ptr = (seg*)(std::realloc(data, size));
       } else {
-        new_ptr = (uint64*)(std::malloc(size));
+        new_ptr = (seg*)(std::malloc(size));
       }
       if (!new_ptr) {
         std::cout << "FATAL ERROR: allocation failed!" << std::endl;
         exit(1);
       }
       data = new_ptr;
-      for (size_t i = max_capacity; i < size; i += sizeof(uint64)) {
-        data[i / sizeof(uint64)] = 0;
+      for (size_t i = max_capacity; i < size; i += sizeof(seg)) {
+        data[i / sizeof(seg)] = 0;
       }
       max_capacity = size;
     }
 
     void pad(size_t target_length_p) {
-      size_t target_length = target_length_p * sizeof(uint64);
+      size_t target_length = target_length_p * sizeof(seg);
       if (target_length <= current_capacity) {
         return;
       }
       reserve(target_length_p);
-      size_t offset = (target_length - current_capacity) / sizeof(uint64);
-      memmove(data + offset, data, current_capacity);
+      size_t offset = (target_length - current_capacity) / sizeof(seg);
       for (size_t i = 0; i < offset; i++) {
-        data[i] = 0;
+        push_back(0);
       }
-      current_capacity = target_length;
     }
 
     void remove(size_t pos) {
@@ -61,24 +61,24 @@ public:
         return;
       }
       size_t elements_after = elems() - pos - 1;
-      memmove(data + pos, data + pos + 1, elements_after * sizeof(uint64));
-      current_capacity -= sizeof(uint64);
+      memmove(data + pos, data + pos + 1, elements_after * sizeof(seg));
+      current_capacity -= sizeof(seg);
     }
 
-    void push_back(uint64 val) {
-      current_capacity += sizeof(uint64);
+    void push_back(seg val) {
+      current_capacity += sizeof(seg);
       if(current_capacity > max_capacity) {
-        reserve(current_capacity / sizeof(uint64));
+        reserve(current_capacity / sizeof(seg));
       }
-      data[current_capacity / sizeof(uint64) - 1] = val;
+      data[current_capacity / sizeof(seg) - 1] = val;
     }
 
-    void set(size_t rel_pos, uint64 val) {
+    void set(size_t rel_pos, seg val) {
       data[rel_pos] = val;
     }
 
     void inc_len() {
-        current_capacity += sizeof(uint64);
+        current_capacity += sizeof(seg);
     }
 
     void compliment() {
@@ -91,23 +91,26 @@ public:
       BigInt res = BigInt(0);
       for (unsigned int i = 0; i < elems(); i++) {
         for (unsigned int j = 0; j < other.elems(); j++) {
-          unsigned int num_zeroes = (elems() - i - 1) + (other.elems() - j - 1);
-          __uint128_t a = data[i];
-          __uint128_t b = other.data[j];
-          __uint128_t c = a * b;
-          uint64 low_part = (uint64)c;
-          uint64 high_part = (uint64)(c >> 64);
+          unsigned int num_zeroes = i + j;
+          double_seg a = data[i];
+          double_seg b = other.data[j];
+          double_seg c = a * b;
+          seg low_part = (seg)c;
+          seg high_part = (seg)(c >> SEG_BITS);
           BigInt term;
           if (high_part > 0) {
             term.reserve(num_zeroes + 2);
-            term.push_back(high_part);
-            term.push_back(low_part);
           } else {
             term.reserve(num_zeroes + 1);
-            term.push_back(low_part);
           }
           for (unsigned int k = 0; k < num_zeroes; k++) {
             term.push_back(0);
+          }
+          if (high_part > 0) {
+            term.push_back(low_part);
+            term.push_back(high_part);
+          } else {
+            term.push_back(low_part);
           }
           res += term;
         }
@@ -123,14 +126,14 @@ public:
         for (size_t i = 0; i < chop; i++) {
           a->data[i] = data[i];
         }
-        a->current_capacity = chop * sizeof(uint64);
+        a->current_capacity = chop * sizeof(seg);
 
         BigInt* b = new BigInt();
         b->reserve(s - chop);
         for (size_t i = 0; i < s - chop; i++) {
           b->data[i] = data[i + chop];
         }
-        b->current_capacity = (s - chop) * sizeof(uint64);
+        b->current_capacity = (s - chop) * sizeof(seg);
 
         return std::make_pair(b, a);
       } else {
@@ -192,19 +195,19 @@ public:
       current_capacity = 0;
     }
 
-    BigInt(uint64* data_p, size_t cap, size_t current) {
+    BigInt(seg* data_p, size_t cap, size_t current) {
       data = data_p;
       max_capacity = cap;
       current_capacity = current;
     }
 
-    BigInt(uint64 x) {
+    BigInt(seg x) {
       current_capacity = 0;
       max_capacity = 0;
       data = nullptr;
       reserve(1);
       *data = x;
-      current_capacity = sizeof(uint64);
+      current_capacity = sizeof(seg);
     }
 
     BigInt(const BigInt& other) {
@@ -212,7 +215,7 @@ public:
       current_capacity = 0;
       max_capacity = 0;
       if (other.data && other.current_capacity > 0) {
-        reserve(other.current_capacity / sizeof(uint64));
+        reserve(other.current_capacity / sizeof(seg));
         memcpy(data, other.data, other.current_capacity);
       }
       current_capacity = other.current_capacity;
@@ -224,7 +227,7 @@ public:
         current_capacity = 0;
         max_capacity = 0;
         if (other.data && other.current_capacity > 0) {
-          reserve(other.current_capacity / sizeof(uint64));
+          reserve(other.current_capacity / sizeof(seg));
           memcpy(data, other.data, other.current_capacity);
         }
         current_capacity = other.current_capacity;
@@ -240,7 +243,7 @@ public:
     }
 
     size_t elems() const {
-      return current_capacity / sizeof(uint64);
+      return current_capacity / sizeof(seg);
     }
 
     BigInt operator+(BigInt const& other) const {
@@ -252,40 +255,33 @@ public:
       auto max_vec = min_size != a_size ? data : other.data;
       BigInt res = BigInt();
       res.reserve(max_size);
-      size_t pos = max_size - 1;
       unsigned int carry = 0;
-      for (unsigned int i = 1; i <= min_size; i++) {
-        uint64 new_carry = 0;
-        uint64 seg_min = min_vec[min_size - i];
-        uint64 seg_max = max_vec[max_size - i];
-        uint64 sum_0;
-        if (__builtin_uaddll_overflow(seg_min, seg_max, &sum_0)) {
+      for (unsigned int i = 0; i < min_size; i++) {
+        seg new_carry = 0;
+        seg seg_min = min_vec[i];
+        seg seg_max = max_vec[i];
+        seg sum_0;
+        if (__builtin_add_overflow(seg_min, seg_max, &sum_0)) {
           new_carry = 1;
         }
-        uint64 sum_1;
-        if (__builtin_uaddll_overflow(sum_0, carry, &sum_1)) {
+        seg sum_1;
+        if (__builtin_add_overflow(sum_0, carry, &sum_1)) {
           new_carry += 1;
         }
-        res.data[pos] = sum_1;
-        pos--;
+        res.push_back(sum_1);
         carry = new_carry;
       }
-      for(int i = max_size - min_size - 1; i >= 0; i -= 1) {
-        uint64 max_seg = max_vec[i];
-        if (__builtin_uaddll_overflow(max_seg, carry, &max_seg)) {
+      for(unsigned int i = min_size; i < max_size; i++) {
+        seg max_seg = max_vec[i];
+        if (__builtin_add_overflow(max_seg, carry, &max_seg)) {
           carry = 1;
         } else {
           carry = 0;
         }
-        res.data[pos] = max_seg;
-        pos--;
+        res.push_back(max_seg);
       }
-      res.current_capacity = max_size * sizeof(uint64);
       if (carry > 0) {
-        res.reserve(max_size + 1);
-        memmove(res.data + 1, res.data, res.current_capacity);
-        res.data[0] = carry;
-        res.current_capacity += sizeof(uint64);
+        res.push_back(carry);
       }
       return res;
     }
