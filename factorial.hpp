@@ -54,19 +54,17 @@ inline std::vector<BigInt> combine_intermediates_multithreaded(std::vector<BigIn
     return intermediates;
   }
   omp_set_num_threads(num_threads);
-  const std::vector<unsigned int> empty = {};
-#pragma omp parallel
-  {
-    const unsigned int n = omp_get_thread_num();
+#pragma omp parallel for
+  for (unsigned int n = 0; n < num_threads; n++) {
     std::vector<BigInt> subsection = {};
     for (unsigned int i = n; i < intermediates.size(); i += num_threads) {
       subsection.push_back(intermediates[i]);
     }
-    combine_intermediates_multithreaded(subsection);
+    subsection = combine_intermediates_multithreaded(subsection);
     intermediates[n] = subsection[0];
   }
   intermediates.resize(num_threads);
-  combine_intermediates_multithreaded(intermediates);
+  intermediates = combine_intermediates_multithreaded(intermediates);
   return intermediates;
 }
 
@@ -78,7 +76,7 @@ inline BigInt factorial(const unsigned int n) {
     BigInt prime_power = power_from_prime(n, p);
     intermediates.push_back(prime_power);
   }
-  combine_intermediates(intermediates);
+  intermediates = combine_intermediates_multithreaded(intermediates);
   BigInt res = intermediates[0];
   return res;
 }
