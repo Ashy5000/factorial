@@ -17,7 +17,9 @@ add_executable(factorial main.cpp
 
 target_link_libraries(factorial OpenMP::OpenMP_CXX)
 
-set(CMAKE_CXX_FLAGS "-O3")
+set(CMAKE_BUILD_TYPE Debug)
+
+set(CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -Wall -Wextra -Werror -Wno-long-long -pedantic")
 
 #
 #set_target_properties(factorial PROPERTIES

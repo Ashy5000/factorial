@@ -5,11 +5,12 @@
 #ifndef ERATOSTHENES_HPP
 #define ERATOSTHENES_HPP
 #include <vector>
+#include <iostream>
 
 inline std::vector<unsigned int> sieve(unsigned int n) {
   std::vector<bool> ints;
-  ints.reserve(n - 2);
-  for (unsigned int i = 2; i < n; i++) {
+  ints.reserve(n - 1);
+  for (unsigned int i = 2; i <= n; i++) {
     ints.push_back(true);
   }
   unsigned int res_len = n - 2;

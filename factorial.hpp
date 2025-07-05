@@ -12,35 +12,42 @@
 
 const unsigned int MIN_THREADS = 2;
 
-inline std::vector<unsigned int> power_from_prime(const unsigned int n, const unsigned int p) {
-  unsigned int exp = 0;
-  unsigned int power = p;
-  while (power <= n) {
-    exp += n / power;
+inline BigInt power_from_prime(const unsigned int n, const unsigned int p) {
+  unsigned long long int exp = 0;
+  unsigned long long int power = p;
+  for (;;) {
+    unsigned long long int frac = n / power;
+    if (frac == 0) {
+        break;
+    } else {
+        exp += frac;
+    }
     power *= p;
   }
-  std::vector<unsigned int> big_p = {p};
-  std::vector<unsigned int> prime_power = exp_by_sqr(big_p, exp);
+  BigInt big_p(p);
+  BigInt prime_power = big_p ^ exp;
   return prime_power;
 }
 
-inline void combine_intermediates(std::vector<std::vector<unsigned int>> &intermediates) {
+inline void combine_intermediates(std::vector<BigInt> &intermediates) {
   while (intermediates.size() > 1) {
     if(intermediates.size() % 2 != 0) {
       intermediates.push_back({1});
     }
     for (unsigned int i = 0; i < intermediates.size(); i++) {
-      intermediates.insert(intermediates.begin() + i, multiply(intermediates[i], intermediates[i + 1]));
+      BigInt a = intermediates[i];
+      BigInt b = intermediates[i + 1];
+      BigInt c = a * b;
+      intermediates.insert(intermediates.begin() + i, c);
       intermediates.erase(intermediates.begin() + i + 1, intermediates.begin() + i + 3);
     }
   }
 }
 
-inline std::vector<std::vector<unsigned int>> combine_intermediates_multithreaded(std::vector<std::vector<unsigned int>> intermediates) {
+inline std::vector<BigInt> combine_intermediates_multithreaded(std::vector<BigInt> intermediates) {
   if (intermediates.size() == 1) {
     return intermediates;
   }
-  // int num_threads = omp_get_max_threads();
   unsigned int num_threads = std::min(omp_get_max_threads(), static_cast<int>(intermediates.size()) / 2);
   if (num_threads < MIN_THREADS) {
     combine_intermediates(intermediates);
@@ -51,7 +58,7 @@ inline std::vector<std::vector<unsigned int>> combine_intermediates_multithreade
 #pragma omp parallel
   {
     const unsigned int n = omp_get_thread_num();
-    std::vector<std::vector<unsigned int>> subsection = {};
+    std::vector<BigInt> subsection = {};
     for (unsigned int i = n; i < intermediates.size(); i += num_threads) {
       subsection.push_back(intermediates[i]);
     }
@@ -63,15 +70,17 @@ inline std::vector<std::vector<unsigned int>> combine_intermediates_multithreade
   return intermediates;
 }
 
-inline std::vector<unsigned int> factorial(const unsigned int n) {
+inline BigInt factorial(const unsigned int n) {
   std::vector<unsigned int> primes = sieve(n);
-  std::vector<std::vector<unsigned int>> intermediates = {};
+  std::vector<BigInt> intermediates = {};
   intermediates.reserve(primes.size() + 1);
   for (const unsigned int p : primes) {
-    std::vector<unsigned int> prime_power = power_from_prime(n, p);
+    BigInt prime_power = power_from_prime(n, p);
     intermediates.push_back(prime_power);
   }
-  return combine_intermediates_multithreaded(intermediates)[0];
+  combine_intermediates(intermediates);
+  BigInt res = intermediates[0];
+  return res;
 }
 
 #endif //FACTORIAL_HPP

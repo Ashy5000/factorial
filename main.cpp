@@ -5,7 +5,13 @@
 #include <iostream>
 
 #include "perf.hpp"
+#include "math.hpp"
 
 int main() {
-    std::cout << factorial_perf(70147) << std::endl;
+    BigInt res = factorial(1000);
+    for (size_t i = 0; i < res.elems(); i++) {
+        std::cout << res.data[i] << std::endl;
+    }
+
+    // std::cout << factorial_perf(5000) << std::endl;
 }
